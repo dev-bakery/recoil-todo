@@ -1,0 +1,12 @@
+*{padding:0;margin:0;}
+html,
+body {
+  font-family: sans-serif, serif, "Apple SD Gothic Neo";
+  background-color: rgb(25, 24, 26);
+}
+
+.App{
+  display: flex;
+  padding:25px 0;
+  align-items: center;
+}
