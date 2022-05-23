@@ -1,5 +1,7 @@
 import selectedDateState from './date';
+import isTodoModal from './todoModal'
 
 export {
-    selectedDateState
+    selectedDateState,
+    isTodoModal
 }

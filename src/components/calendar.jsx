@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import styled from 'styled-components';
 import {BiChevronLeft, BiChevronRight} from 'react-icons/bi';
 import { useRecoilState } from 'recoil';
-import { selectedDateState } from '../store';
+import { selectedDateState, isTodoModal } from '../store';
 
 const CalendarBox= styled.div`
     width: 100%;
@@ -61,24 +61,69 @@ const TableBody = styled.tbody`
     color: #C9C8CC;
     padding: 8px;
     position: relative;
-    border-top:1px solid #aaa
+    border-top:1px solid #aaa;
+
+    &:hover{
+        & button{
+            display:block;
+        }
+    }
   }
 `;
 const DisplayDate = styled.div`
     color: ${({ isToday }) => isToday && '#F8F7FA'};
-  background-color: ${({ isToday, isSelected }) => isSelected ? '#7047EB' : isToday ? '#313133' : ''};
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  align-self: flex-end;
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
+    background-color: ${({ isToday }) => isToday && '#7047EB'};
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    align-self: flex-end;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+`;
+const DateButton = styled.button`
+    position:absolute;
+    left:0;
+    top:12px;
+    width:24px;
+    height:24px;
+    display:none;
+    font-size:20px;
+    color:#000;
+    border:1px solid #000;
+    border-radius:3px;
+    cursor:pointer;
+`;
+const Layer = styled.div`
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  &:after{
+      content:'';
+      position:fixed;
+      left:0;
+      top:0;
+      width:100%;
+      height:100%;
+      background-color:rgba(0,0,0,0.4);
+  }
+`;
+const LayerContent = styled.div`
+  position:fixed;
+  left:50%;
+  top:50%;
+  width:500px;
+  height:300px;
+  background-color:#000;
+  border-radius:15px;
+  transform:translate(-50%, -50%);
+  z-index:10
 `;
 
 const DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
@@ -86,12 +131,12 @@ const MONTHS = ['January','February','March','April','May','June','July',"August
 
 const isSameDay = (a, b) => {
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  }
-  
+}  
 
 function Calendar() {
 
     const [selectedDate, setSelectedDate] = useRecoilState(selectedDateState);
+    const [isModal, setIsModal] = useRecoilState(isTodoModal);
     const {year, month, firstDay, lastDay} = useMemo(()=>{
         const year = selectedDate.getFullYear();
         const month = selectedDate.getMonth();
@@ -105,7 +150,11 @@ function Calendar() {
         
     },[selectedDate])
     const selectDate = (date) => {
-        setSelectedDate(date)
+        setIsModal(!isModal)
+        // setSelectedDate(date)
+    }
+    const handleModal = () => {
+        setIsModal(!isModal)
     }
     const pad = () => [...Array(firstDay.getDay()).keys()].map((p) => <td key={`pad_${p}`}></td>);
     const range = () => [...Array(lastDay.getDate()).keys()].map((d) => {
@@ -113,13 +162,13 @@ function Calendar() {
         const today = new Date();
 
         return(
-            <td key={`range_${d}`}>
+            <td key={`range_${d}`} >
                 <DisplayDate
                     onClick={() => selectDate(thisDay)}
-                    isSelected={isSameDay(selectedDate, thisDay)}
                     isToday={isSameDay(today, thisDay)}
                     >{new Date(year, month, d + 1).getDate()}
                 </DisplayDate>
+                <DateButton type='button' onClick={handleModal}>+</DateButton>
             </td>
         )
     });
@@ -136,7 +185,6 @@ function Calendar() {
         <CalendarBox>
             <CalendarHeader>
                 <ArrowButton onClick={()=>{
-                    // selectedDate 객체의 월을 selectedDate.getMonth() - 1 로 지정
                     selectDate(new Date(selectedDate.setMonth(selectedDate.getMonth() - 1)))
                 }}>
                     <BiChevronLeft/>
@@ -160,6 +208,13 @@ function Calendar() {
                     {render()}
                 </TableBody>
             </Table>
+            {isModal && 
+            <Layer>
+                <LayerContent>
+                    <p></p>
+                    <button type='button' onClick={handleModal}>닫기</button>
+                </LayerContent>
+            </Layer>}
         </CalendarBox>
     )
 }
